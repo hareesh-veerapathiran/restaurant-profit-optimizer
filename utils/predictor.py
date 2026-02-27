@@ -1,16 +1,18 @@
+import os
 import joblib
 import pandas as pd
-import os
 
 from utils.feature_engineering import create_features, encode_categorical
 
+# absolute base directory
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-model_path = os.path.join(BASE_DIR, "models", "profit_model.pkl")
-columns_path = os.path.join(BASE_DIR, "models", "model_columns.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, "models", "profit_model.pkl")
+COLUMNS_PATH = os.path.join(BASE_DIR, "models", "model_columns.pkl")
 
-model = joblib.load(model_path)
-columns = joblib.load(columns_path)
+# load safely
+model = joblib.load(MODEL_PATH)
+model_columns = joblib.load(COLUMNS_PATH)
 
 
 def predict_profit(input_dict):
@@ -20,6 +22,8 @@ def predict_profit(input_dict):
     df = create_features(df)
     df = encode_categorical(df)
 
-    df = df.reindex(columns=columns, fill_value=0)
+    df = df.reindex(columns=model_columns, fill_value=0)
 
-    return model.predict(df)[0]
+    prediction = model.predict(df)[0]
+
+    return prediction
