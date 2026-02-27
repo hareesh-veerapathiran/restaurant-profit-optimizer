@@ -5,10 +5,15 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(BASE_DIR)
 
 import streamlit as st
+import plotly.express as px
+
 from utils.predictor import predict_profit
 from utils.optimizer import optimize_channel_mix
 
 
+# -----------------------
+# PAGE SETTINGS
+# -----------------------
 st.set_page_config(
     page_title="Restaurant Profit Optimizer",
     page_icon="📊",
@@ -18,8 +23,10 @@ st.set_page_config(
 st.title("📊 Restaurant Profit Optimizer")
 
 
-# Sidebar controls
-st.sidebar.header("Simulation Controls")
+# -----------------------
+# SIDEBAR CONTROLS
+# -----------------------
+st.sidebar.header("Scenario Simulator")
 
 ue = st.sidebar.slider("Uber Eats Share", 0.0, 0.8, 0.3)
 sd = st.sidebar.slider("Self Delivery Share", 0.0, 0.8, 0.2)
@@ -30,7 +37,9 @@ commission = st.sidebar.slider("Commission Rate", 0.0, 0.5, 0.25)
 delivery_cost = st.sidebar.slider("Delivery Cost per Order", 0.5, 6.0, 3.0)
 
 
-# Input data
+# -----------------------
+# INPUT DATA
+# -----------------------
 input_data = {
 
     "GrowthFactor":1.02,
@@ -70,23 +79,58 @@ input_data = {
 }
 
 
-# Prediction
+# -----------------------
+# PROFIT PREDICTION
+# -----------------------
 profit = predict_profit(input_data)
 
-st.metric(
-    "Predicted Monthly Profit",
-    f"${profit:,.0f}"
+col1, col2 = st.columns(2)
+
+with col1:
+    st.metric(
+        "Predicted Monthly Profit",
+        f"${profit:,.0f}"
+    )
+
+
+# -----------------------
+# CHANNEL MIX CHART
+# -----------------------
+mix_df = {
+    "Channel": ["UberEats", "DoorDash", "SelfDelivery"],
+    "Share": [ue, dd, sd]
+}
+
+fig = px.pie(
+    names=mix_df["Channel"],
+    values=mix_df["Share"],
+    title="Current Channel Mix"
 )
 
+with col2:
+    st.plotly_chart(fig, use_container_width=True)
 
-# Optimization
+
+# -----------------------
+# OPTIMIZATION BUTTON
+# -----------------------
+st.markdown("---")
+
 if st.button("Optimize Channel Mix"):
 
     best_mix, best_profit = optimize_channel_mix(input_data)
 
-    st.write("Optimal Mix:", best_mix)
+    improvement = best_profit - profit
 
-    st.metric(
-        "Optimized Profit",
-        f"${best_profit:,.0f}"
-    )
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.subheader("Optimal Channel Mix")
+        st.json(best_mix)
+
+    with col4:
+        st.metric(
+            "Optimized Profit",
+            f"${best_profit:,.0f}",
+            delta=f"+${improvement:,.0f}"
+        )
