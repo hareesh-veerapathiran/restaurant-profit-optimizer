@@ -4,18 +4,18 @@ import pandas as pd
 
 from utils.feature_engineering import create_features, encode_categorical
 
-# get root directory
+# Get project root directory safely
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MODEL_PATH = os.path.join(BASE_DIR, "models", "profit_model.pkl")
 COLUMNS_PATH = os.path.join(BASE_DIR, "models", "model_columns.pkl")
 
-# load model safely
+# Debug check (important for Streamlit Cloud)
 if not os.path.exists(MODEL_PATH):
-    raise FileNotFoundError(f"Model not found: {MODEL_PATH}")
+    raise FileNotFoundError(f"Model not found at {MODEL_PATH}")
 
 if not os.path.exists(COLUMNS_PATH):
-    raise FileNotFoundError(f"Columns file not found: {COLUMNS_PATH}")
+    raise FileNotFoundError(f"Columns file not found at {COLUMNS_PATH}")
 
 model = joblib.load(MODEL_PATH)
 model_columns = joblib.load(COLUMNS_PATH)
