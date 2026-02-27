@@ -11,9 +11,6 @@ from utils.predictor import predict_profit
 from utils.optimizer import optimize_channel_mix
 
 
-# -----------------------
-# PAGE SETTINGS
-# -----------------------
 st.set_page_config(
     page_title="Restaurant Profit Optimizer",
     page_icon="📊",
@@ -23,9 +20,7 @@ st.set_page_config(
 st.title("📊 Restaurant Profit Optimizer")
 
 
-# -----------------------
-# SIDEBAR CONTROLS
-# -----------------------
+# Sidebar controls
 st.sidebar.header("Scenario Simulator")
 
 ue = st.sidebar.slider("Uber Eats Share", 0.0, 0.8, 0.3)
@@ -37,9 +32,7 @@ commission = st.sidebar.slider("Commission Rate", 0.0, 0.5, 0.25)
 delivery_cost = st.sidebar.slider("Delivery Cost per Order", 0.5, 6.0, 3.0)
 
 
-# -----------------------
-# INPUT DATA
-# -----------------------
+# Input data
 input_data = {
 
     "GrowthFactor":1.02,
@@ -79,58 +72,48 @@ input_data = {
 }
 
 
-# -----------------------
-# PROFIT PREDICTION
-# -----------------------
+# Prediction
 profit = predict_profit(input_data)
 
-col1, col2 = st.columns(2)
-
-with col1:
-    st.metric(
-        "Predicted Monthly Profit",
-        f"${profit:,.0f}"
-    )
+st.metric(
+    "Predicted Monthly Profit",
+    f"${profit:,.0f}"
+)
 
 
-# -----------------------
-# CHANNEL MIX CHART
-# -----------------------
-mix_df = {
+# Chart
+chart_data = {
     "Channel": ["UberEats", "DoorDash", "SelfDelivery"],
     "Share": [ue, dd, sd]
 }
 
 fig = px.pie(
-    names=mix_df["Channel"],
-    values=mix_df["Share"],
-    title="Current Channel Mix"
+    names=chart_data["Channel"],
+    values=chart_data["Share"],
 )
 
-with col2:
-    st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig)
 
 
-# -----------------------
-# OPTIMIZATION BUTTON
-# -----------------------
-st.markdown("---")
-
+# Optimization
 if st.button("Optimize Channel Mix"):
 
-    best_mix, best_profit = optimize_channel_mix(input_data)
+    try:
 
-    improvement = best_profit - profit
+        best_mix, best_profit = optimize_channel_mix(input_data)
 
-    col3, col4 = st.columns(2)
+        improvement = best_profit - profit
 
-    with col3:
-        st.subheader("Optimal Channel Mix")
+        st.subheader("Optimal Mix")
         st.json(best_mix)
 
-    with col4:
         st.metric(
             "Optimized Profit",
             f"${best_profit:,.0f}",
             delta=f"+${improvement:,.0f}"
         )
+
+    except Exception as e:
+
+        st.error("Optimization failed")
+        st.exception(e)
